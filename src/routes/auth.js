@@ -1,78 +1,83 @@
+const express = require('express');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const { ApiApplication } = require('../models');
 
-// Middleware para verificar token JWT
-const verifyToken = async (req, res, next) => {
+const router = express.Router();
+
+// Endpoint para obter token de autenticação
+router.post('/token', async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        error: 'Token de acesso requerido',
+    const { client_id, client_secret } = req.body;
+
+    // Validar dados de entrada
+    if (!client_id || !client_secret) {
+      return res.status(400).json({
+        error: 'client_id e client_secret são obrigatórios',
         status: 'error'
       });
     }
 
-    const token = authHeader.substring(7); // Remove 'Bearer '
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Verificar se a aplicação ainda está ativa
+    // Buscar aplicação no banco
     const application = await ApiApplication.findOne({
-      where: { client_id: decoded.client_id, is_active: true }
+      where: { 
+        client_id: client_id,
+        is_active: true 
+      }
     });
 
     if (!application) {
       return res.status(401).json({
-        error: 'Aplicação não autorizada',
+        error: 'Credenciais inválidas',
         status: 'error'
       });
     }
 
-    req.application = {
-      client_id: decoded.client_id,
-      app_name: application.app_name
-    };
-
-    next();
-  } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        error: 'Token expirado',
-        status: 'error'
-      });
-    }
+    // Verificar client_secret
+    const isValidSecret = await bcrypt.compare(client_secret, application.client_secret);
     
-    if (error.name === 'JsonWebTokenError') {
+    if (!isValidSecret) {
       return res.status(401).json({
-        error: 'Token inválido',
+        error: 'Credenciais inválidas',
         status: 'error'
       });
     }
 
-    console.error('Erro na verificação do token:', error);
-    return res.status(500).json({
+    // Gerar token JWT
+    const token = jwt.sign(
+      { 
+        client_id: application.client_id,
+        app_name: application.app_name
+      },
+      process.env.JWT_SECRET || 'your-jwt-secret-change-in-production',
+      { 
+        expiresIn: process.env.JWT_EXPIRES_IN || '1h'
+      }
+    );
+
+    res.json({
+      access_token: token,
+      token_type: 'Bearer',
+      expires_in: 3600, // 1 hora em segundos
+      status: 'success'
+    });
+
+  } catch (error) {
+    console.error('Erro na autenticação:', error);
+    res.status(500).json({
       error: 'Erro interno do servidor',
       status: 'error'
     });
   }
-};
+});
 
-// Middleware para verificar sessão administrativa
-const verifyAdminSession = (req, res, next) => {
-  if (!req.session || !req.session.admin) {
-    return res.status(401).json({
-      success: false,
-      error: 'Sessão administrativa requerida'
-    });
-  }
+// Endpoint de health check para autenticação
+router.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'Authentication API'
+  });
+});
 
-  req.admin = req.session.admin;
-  next();
-};
-
-module.exports = {
-  verifyToken,
-  verifyAdminSession
-};
-
+module.exports = router;

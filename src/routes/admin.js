@@ -344,5 +344,172 @@ router.get('/logs', verifyAdminSession, async (req, res) => {
   }
 });
 
+// Cadastrar novo cliente
+router.post('/client/create', verifyAdminSession, async (req, res) => {
+  try {
+    const { document, name, account_limit, operation_password } = req.body;
+
+    // Validar dados obrigatórios
+    if (!document || !name || !operation_password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Documento, nome e senha de operação são obrigatórios'
+      });
+    }
+
+    // Validar senha de operação
+    if (!validateOperationPassword(operation_password)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Senha de operação deve ter exatamente 8 dígitos'
+      });
+    }
+
+    // Verificar senha de operação do usuário
+    const adminUser = await AdminUser.findByPk(req.admin.id);
+    
+    if (!adminUser || adminUser.operation_password !== operation_password) {
+      return res.status(401).json({
+        success: false,
+        error: 'Senha de operação incorreta'
+      });
+    }
+
+    // Limpar e validar documento
+    const cleanDoc = cleanDocument(document);
+    
+    if (!validateDocument(document)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Formato de documento inválido'
+      });
+    }
+
+    // Validar limite (padrão 0 se não informado)
+    let limit = 0;
+    if (account_limit !== undefined && account_limit !== null) {
+      limit = parseFloat(account_limit);
+      if (isNaN(limit) || limit < 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Limite deve ser um valor numérico positivo'
+        });
+      }
+    }
+
+    // Verificar se cliente já existe
+    const existingClient = await Client.findOne({
+      where: { document: cleanDoc }
+    });
+
+    if (existingClient) {
+      return res.status(409).json({
+        success: false,
+        error: 'Cliente com este documento já existe'
+      });
+    }
+
+    // Criar novo cliente
+    const newClient = await Client.create({
+      document: cleanDoc,
+      name: name.trim(),
+      account_limit: limit,
+      created_date: new Date(),
+      updated_date: new Date()
+    });
+
+    // Registrar log da criação
+    await LimitChangeLog.create({
+      client_document: newClient.document,
+      client_name: newClient.name,
+      previous_limit: 0,
+      new_limit: limit,
+      changed_by: req.admin.username,
+      operation_status: 'success'
+    });
+
+    // Retornar dados do cliente criado
+    res.status(201).json({
+      success: true,
+      client: {
+        document: newClient.document,
+        name: newClient.name,
+        account_limit: parseFloat(newClient.account_limit),
+        created_date: newClient.created_date.toISOString(),
+        updated_date: newClient.updated_date.toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro na criação de cliente:', error);
+    
+    // Registrar log de erro se possível
+    try {
+      if (req.body.document && req.admin) {
+        await LimitChangeLog.create({
+          client_document: cleanDocument(req.body.document),
+          client_name: req.body.name || 'Erro na operação',
+          previous_limit: 0,
+          new_limit: parseFloat(req.body.account_limit) || 0,
+          changed_by: req.admin.username,
+          operation_status: 'failed'
+        });
+      }
+    } catch (logError) {
+      console.error('Erro ao registrar log de falha:', logError);
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor'
+    });
+  }
+});
+
+// Consultar logs de alterações
+router.get('/logs', verifyAdminSession, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const offset = (page - 1) * limit;
+
+    // Buscar logs com paginação
+    const { count, rows: logs } = await LimitChangeLog.findAndCountAll({
+      limit: limit,
+      offset: offset,
+      order: [['change_date', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      logs: logs.map(log => ({
+        id: log.id,
+        client_document: log.client_document,
+        client_name: log.client_name,
+        previous_limit: parseFloat(log.previous_limit),
+        new_limit: parseFloat(log.new_limit),
+        changed_by: log.changed_by,
+        change_date: log.change_date.toISOString(),
+        operation_status: log.operation_status
+      })),
+      pagination: {
+        page: page,
+        pages: Math.ceil(count / limit),
+        per_page: limit,
+        total: count,
+        has_next: page < Math.ceil(count / limit),
+        has_prev: page > 1
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro na consulta de logs:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor'
+    });
+  }
+});
+
 module.exports = router;
 

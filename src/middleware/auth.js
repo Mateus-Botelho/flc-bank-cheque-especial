@@ -15,7 +15,7 @@ const verifyToken = async (req, res, next) => {
 
     const token = authHeader.substring(7); // Remove 'Bearer '
     
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret-change-in-production');
     
     // Verificar se a aplicação ainda está ativa
     const application = await ApiApplication.findOne({
@@ -75,4 +75,3 @@ module.exports = {
   verifyToken,
   verifyAdminSession
 };
-
