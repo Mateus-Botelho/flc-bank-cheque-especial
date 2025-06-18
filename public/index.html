@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLC BANK - Gestão de Cheque Especial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #d5dbdb;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.active {
+            display: block;
+        }
+
+        .login-form {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 450px;
+            margin: 100px auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        .search-section {
+            margin-bottom: 25px;
+        }
+
+        .search-result {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .client-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .limit-value {
+            font-size: 24px;
+            color: #27ae60;
+        }
+
+        .edit-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px dashed #ddd;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .log-table th,
+        .log-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .log-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .log-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .api-section {
+            grid-column: 1 / -1;
+        }
+
+        .api-endpoint {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .api-endpoint::before {
+            content: 'API';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 10px;
+            background: #667eea;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .clients-list {
+            margin-top: 20px;
+        }
+
+        .client-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .client-card:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .client-card-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .client-card-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .client-card-document {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .client-card-limit {
+            font-weight: 600;
+            color: #27ae60;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .client-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Form -->
+    <div id="loginSection">
+        <div class="login-form">
+            <div class="logo" style="justify-content: center; margin-bottom: 30px;">
+                <div class="logo-icon">BC</div>
+                <div class="logo-text">FLC BANK</div>
+            </div>
+            <h2>Área Administrativa</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <input type="text" id="username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;" id="loginBtn">
+                    🔐 Fazer Login
+                </button>
+            </form>
+            <div style="margin-top: 20px; text-align: center; color: #666; font-size: 14px;">
+                <p>Credenciais de teste: admin / admin123</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboardSection" class="main-content">
+        <div class="container">
+            <div class="header">
+                <div class="logo">
+                    <div class="logo-icon">BC</div>
+                    <div class="logo-text">FLC BANK - Cheque Especial</div>
+                </div>
+                <div class="user-info">
+                    <span>Bem-vindo, <strong id="currentUser">Administrador</strong></span>
+                    <button class="btn btn-secondary" onclick="logout()">
+                        🚪 Sair
+                    </button>
+                </div>
+            </div>
+
+            <div class="dashboard">
+                <!-- Client Search and Management -->
+                <div class="card">
+                    <h3>
+                        <div class="card-icon">👤</div>
+                        Gestão de Clientes
+                    </h3>
+                    
+                    <div class="search-section">
+                        <div class="form-group">
+                            <label for="searchDocument">CPF/CNPJ do Cliente</label>
+                            <input type="text" id="searchDocument" class="form-control" placeholder="Digite o CPF ou CNPJ">
+                        </div>
+                        <button class="btn btn-primary" onclick="searchClient()" id="searchBtn">
+                            🔍 Buscar Cliente
+                        </button>
+                        <button class="btn btn-success" onclick="showAllClients()">
+                            📋 Ver Todos Clientes
+                        </button>
+                    </div>
+
+                    <div id="clientResult" style="display: none;">
+                        <div class="search-result">
+                            <div class="client-info">
+                                <div class="info-item">
+                                    <span class="info-label">Documento</span>
+                                    <span class="info-value" id="clientDocument">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Nome</span>
+                                    <span class="info-value" id="clientName">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Limite Atual</span>
+                                    <span class="info-value limit-value" id="currentLimit">R$ 0,00</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Última Atualização</span>
+                                    <span class="info-value" id="lastUpdate">-</span>
+                                </div>
+                            </div>
+                            
+                            <div class="edit-section">
+                                <h4 style="margin-bottom: 15px; color: #2c3e50;">✏️ Alterar Limite</h4>
+                                <div class="form-group">
+                                    <label for="newLimit">Novo Limite (R$)</label>
+                                    <input type="number" id="newLimit" class="form-control" step="0.01" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="operationPassword">Senha de Operação (8 dígitos)</label>
+                                    <input type="password" id="operationPassword" class="form-control" maxlength="8" pattern="[0-9]{8}">
+                                </div>
+                                <button class="btn btn-primary" onclick="updateLimit()" id="updateBtn">
+                                    💾 Atualizar Limite
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="clientsList" class="clients-list" style="display: none;">
+                        <h4 style="margin-bottom: 15px; color: #2c3e50;">📋 Lista de Clientes</h4>
+                        <div id="clientsContainer"></div>
+                        <div class="pagination" id="pagination"></div>
+                    </div>
+                </div>
+
+                <!-- API Documentation -->
+                <div class="card">
+                    <h3>
+                        <div class="card-icon">⚡</div>
+                        API de Consulta
+                    </h3>
+                    
+                    <p><strong>Endpoint Principal:</strong></p>
+                    <div class="api-endpoint">
+POST /api/overdraft/check<br>
+Content-Type: application/json<br>
+Authorization: Bearer {API_TOKEN}<br><br>
+{<br>
+  "document": "12345678901"<br>
+}
+                    </div>
+
+                    <p><strong>Resposta:</strong></p>
+                    <div class="api-endpoint">
+{<br>
+  "account_limit": 5000.00,<br>
+  "updated_date": "2025-06-16T10:30:00Z",<br>
+  "status": "success"<br>
+}
+                    </div>
+
+                    <p><strong>Autenticação de Aplicação:</strong></p>
+                    <div class="api-endpoint">
+POST /api/auth/token<br>
+Content-Type: application/json<br><br>
+{<br>
+  "client_id": "bank_app_001",<br>
+  "client_secret": "secret_key_123"<br>
+}
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <button class="btn btn-secondary" onclick="testAPI()">
+                            🧪 Testar API
+                        </button>
+                        <button class="btn btn-secondary" onclick="showApiCredentials()">
+                            🔑 Ver Credenciais API
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Audit Log -->
+                <div class="card api-section">
+                    <h3>
+                        <div class="card-icon">📋</div>
+                        Log de Alterações (Últimas 10)
+                    </h3>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="log-table">
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Documento</th>
+                                    <th>Cliente</th>
+                                    <th>Limite Anterior</th>
+                                    <th>Novo Limite</th>
+                                    <th>Usuário</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logTableBody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; color: #999;">Carregando logs...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top: 20px; text-align: right;">
+                        <button class="btn btn-secondary" onclick="refreshLogs()">
+                            🔄 Atualizar Logs
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Confirmations -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 id="modalTitle">Confirmação</h3>
+            <p id="modalMessage">Tem certeza que deseja realizar esta operação?</p>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" onclick="closeModal()" style="margin-right: 10px;">Cancelar</button>
+                <button class="btn btn-primary" id="confirmButton">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = '/api';
+        let currentClientDocument = null;
+
+        // Utility functions
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString('pt-BR');
+        }
+
+        function formatDocument(doc) {
+            const cleanDoc = doc.replace(/\D/g, '');
+            if (cleanDoc.length <= 11) {
+                return cleanDoc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            } else {
+                return cleanDoc.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const existingAlert = document.querySelector('.alert');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            
+            const icon = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            
+            alert.innerHTML = `${icon[type] || ''} ${message}`;
+            
+            const container = document.querySelector('.container') || document.body;
+            container.insertBefore(alert, container.firstChild);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        function setLoading(buttonId, loading) {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.disabled = loading;
+                if (loading) {
+                    button.innerHTML = '<div class="loading"></div> Carregando...';
+                } else {
+                    // Restore original button text
+                    switch(buttonId) {
+                        case 'loginBtn':
+                            button.innerHTML = '🔐 Fazer Login';
+                            break;
+                        case 'searchBtn':
+                            button.innerHTML = '🔍 Buscar Cliente';
+                            break;
+                        case 'updateBtn':
+                            button.innerHTML = '💾 Atualizar Limite';
+                            break;
+                    }
+                }
+            }
+        }
+
+        // Authentication
+        async function login(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            setLoading('loginBtn', true);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('currentUser').textContent = data.user.username;
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('dashboardSection').classList.add('active');
+                    
+                    showAlert('Login realizado com sucesso!', 'success');
+                    
+                    // Load initial data
+                    refreshLogs();
+                } else {
+                    showAlert(data.error || 'Credenciais inválidas!', 'error');
+                }
+            } catch (error) {
+                showAlert('Erro ao conectar com o servidor. Verifique se a API está rodando.', 'error');
+                console.error('Login error:', error);
+            } finally {
+                setLoading('loginBtn', false);
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch(`${API_BASE_URL}/admin/logout`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('dashboardSection').classList.remove('active');
+            document.getElementById('loginForm').reset();
+            showAlert('Logout realizado com sucesso!', 'success');
+        }
+
+        // Client search
+        async function searchClient() {
+            const documentInput = document.getElementById('searchDocument').value.replace(/\D/g, '');
+            
+            if (!documentInput) {
+                showAlert('Digite um CPF/CNPJ válido!', 'error');
+                return;
+            }
+
+            setLoading('searchBtn', true);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/client/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ document: documentInput })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentClientDocument = documentInput;
+                    displayClient(data.client);
+                    document.getElementById('clientResult').style.display = 'block';
+                    document.getElementById('clientsList').style.display = 'none';
+                    showAlert('Cliente encontrado!', 'success');
+                } else {
+                    document.getElementById('clientResult').style.display = 'none';
+                    showAlert(data.error || 'Cliente não encontrado!', 'error');
+                }
+            } catch (error) {
+                showAlert('Erro ao buscar cliente!', 'error');
+                console.error('Search error:', error);
+            } finally {
+                setLoading('searchBtn', false);
+            }
+        }
+
+        function displayClient(client) {
+            document.getElementById('clientDocument').textContent = formatDocument(client.document);
+            document.getElementById('clientName').textContent = client.name;
+            document.getElementById('currentLimit').textContent = formatCurrency(client.account_limit);
+            document.getElementById('lastUpdate').textContent = formatDate(client.updated_date);
+            document.getElementById('newLimit').value = client.account_limit;
+        }
+
+        // Show all clients
+        async function showAllClients(page = 1) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/clients?page=${page}&per_page=10`, {
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayClientsList(data.clients, data.pagination);
+                    document.getElementById('clientResult').style.display = 'none';
+                    document.getElementById('clientsList').style.display = 'block';
+                } else {
+                    showAlert(data.error || 'Erro ao carregar clientes!', 'error');
+                }
+            } catch (error) {
+                showAlert('Erro ao carregar clientes!', 'error');
+                console.error('Load clients error:', error);
+            }
+        }
+
+        function displayClientsList(clients, pagination) {
+            const container = document.getElementById('clientsContainer');
+            container.innerHTML = '';
+
+            clients.forEach(client => {
+                const clientCard = document.createElement('div');
+                clientCard.className = 'client-card';
+                clientCard.onclick = () => selectClient(client);
+                
+                clientCard.innerHTML = `
+                    <div class="client-card-info">
+                        <div class="client-card-name">${client.name}</div>
+                        <div class="client-card-document">${formatDocument(client.document)}</div>
+                    </div>
+                    <div class="client-card-limit">${formatCurrency(client.account_limit)}</div>
+                `;
+                
+                container.appendChild(clientCard);
+            });
+
+            // Update pagination
+            updatePagination(pagination);
+        }
+
+        function selectClient(client) {
+            currentClientDocument = client.document;
+            displayClient(client);
+            document.getElementById('clientResult').style.display = 'block';
+            document.getElementById('clientsList').style.display = 'none';
+            document.getElementById('searchDocument').value = client.document;
+        }
+
+        function updatePagination(pagination) {
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.innerHTML = '';
+
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = 'Anterior';
+            prevBtn.disabled = !pagination.has_prev;
+            prevBtn.onclick = () => showAllClients(pagination.page - 1);
+            paginationContainer.appendChild(prevBtn);
+
+            // Page info
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'pagination-info';
+            pageInfo.textContent = `Página ${pagination.page} de ${pagination.pages} (${pagination.total} clientes)`;
+            paginationContainer.appendChild(pageInfo);
+
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Próxima';
+            nextBtn.disabled = !pagination.has_next;
+            nextBtn.onclick = () => showAllClients(pagination.page + 1);
+            paginationContainer.appendChild(nextBtn);
+        }
+
+        // Update limit
+        async function updateLimit() {
+            const newLimit = parseFloat(document.getElementById('newLimit').value);
+            const operationPassword = document.getElementById('operationPassword').value;
+
+            if (!currentClientDocument) {
+                showAlert('Cliente não selecionado!', 'error');
+                return;
+            }
+
+            if (!newLimit || newLimit < 0) {
+                showAlert('Limite inválido!', 'error');
+                return;
+            }
+
+            if (!operationPassword || operationPassword.length !== 8) {
+                showAlert('Senha de operação deve ter 8 dígitos!', 'error');
+                return;
+            }
+
+            setLoading('updateBtn', true);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/client/update-limit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        document: currentClientDocument,
+                        new_limit: newLimit,
+                        operation_password: operationPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayClient(data.client);
+                    document.getElementById('operationPassword').value = '';
+                    showAlert('Limite atualizado com sucesso!', 'success');
+                    refreshLogs();
+                } else {
+                    showAlert(data.error || 'Erro ao atualizar limite!', 'error');
+                }
+            } catch (error) {
+                showAlert('Erro ao atualizar limite!', 'error');
+                console.error('Update limit error:', error);
+            } finally {
+                setLoading('updateBtn', false);
+            }
+        }
+
+        // Logs
+        async function refreshLogs() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/logs?limit=10`, {
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayLogs(data.logs);
+                } else {
+                    showAlert(data.error || 'Erro ao carregar logs!', 'error');
+                }
+            } catch (error) {
+                showAlert('Erro ao carregar logs!', 'error');
+                console.error('Load logs error:', error);
+            }
+        }
+
+        function displayLogs(logs) {
+            const tbody = document.getElementById('logTableBody');
+            tbody.innerHTML = '';
+
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Nenhum log encontrado</td></tr>';
+                return;
+            }
+
+            logs.forEach(log => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formatDate(log.change_date)}</td>
+                    <td>${formatDocument(log.client_document)}</td>
+                    <td>${log.client_name}</td>
+                    <td>${formatCurrency(log.previous_limit)}</td>
+                    <td>${formatCurrency(log.new_limit)}</td>
+                    <td>${log.changed_by}</td>
+                    <td><span class="status-badge status-${log.operation_status}">${log.operation_status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // API Testing
+        async function testAPI() {
+            try {
+                // First get token
+                const tokenResponse = await fetch(`${API_BASE_URL}/auth/token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        client_id: 'bank_app_001',
+                        client_secret: 'secret_key_123'
+                    })
+                });
+
+                const tokenData = await tokenResponse.json();
+
+                if (!tokenData.access_token) {
+                    showAlert('Erro ao obter token de API!', 'error');
+                    return;
+                }
+
+                // Test overdraft check
+                const testResponse = await fetch(`${API_BASE_URL}/overdraft/check`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${tokenData.access_token}`
+                    },
+                    body: JSON.stringify({
+                        document: '12345678901'
+                    })
+                });
+
+                const testData = await testResponse.json();
+
+                if (testData.status === 'success') {
+                    showAlert(`API funcionando! Limite: ${formatCurrency(testData.account_limit)}`, 'success');
+                } else {
+                    showAlert('Erro no teste da API!', 'error');
+                }
+            } catch (error) {
+                showAlert('Erro ao testar API!', 'error');
+                console.error('API test error:', error);
+            }
+        }
+
+        function showApiCredentials() {
+            showModal('Credenciais da API', `
+                <p><strong>Client ID:</strong> bank_app_001</p>
+                <p><strong>Client Secret:</strong> secret_key_123</p>
+                <br>
+                <p><strong>Endpoint de Token:</strong></p>
+                <code>POST /api/auth/token</code>
+                <br><br>
+                <p><strong>Endpoint de Consulta:</strong></p>
+                <code>POST /api/overdraft/check</code>
+            `);
+        }
+
+        // Modal functions
+        function showModal(title, message, confirmCallback = null) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').innerHTML = message;
+            document.getElementById('confirmModal').style.display = 'block';
+            
+            if (confirmCallback) {
+                document.getElementById('confirmButton').onclick = confirmCallback;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
+        // Event listeners
+        document.getElementById('loginForm').addEventListener('submit', login);
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('confirmModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if already logged in (for development)
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                document.getElementById('currentUser').textContent = savedUser;
+            }
+        });
+    </script>
+</body>
+</html>
+
