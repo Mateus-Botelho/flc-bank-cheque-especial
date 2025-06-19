@@ -1,6 +1,7 @@
 // API Configuration
 const API_BASE_URL = '/api';
 let currentClientDocument = null;
+let isNewClient = false; // Flag para controlar se é cliente novo
 
 // Document validation functions
 function validateCPF(cpf) {
@@ -101,7 +102,6 @@ function formatDocument(doc) {
 }
 
 function showAlert(message, type = 'info') {
-    // Remove alert anterior se existir
     const existingAlert = document.querySelector('.alert');
     if (existingAlert) {
         existingAlert.remove();
@@ -122,7 +122,6 @@ function showAlert(message, type = 'info') {
     const container = document.querySelector('.container') || document.body;
     container.insertBefore(alert, container.firstChild);
 
-    // Auto remover após 5 segundos
     setTimeout(() => {
         if (alert && alert.parentNode) {
             alert.remove();
@@ -142,10 +141,14 @@ function setLoading(buttonId, loading) {
                     button.innerHTML = '🔐 Fazer Login';
                     break;
                 case 'searchBtn':
-                    button.innerHTML = '🔍 Consultar Limite';
+                    button.innerHTML = '🔍 Buscar Cliente';
                     break;
                 case 'updateBtn':
-                    button.innerHTML = '💾 Alterar Limite';
+                    if (isNewClient) {
+                        button.innerHTML = '➕ Criar Cliente';
+                    } else {
+                        button.innerHTML = '💾 Atualizar Limite';
+                    }
                     break;
                 default:
                     button.innerHTML = 'Executar';
@@ -154,124 +157,86 @@ function setLoading(buttonId, loading) {
     }
 }
 
-// Display client data function - VERSÃO SEGURA
-function displayClient(documentValue, data) {
-
-
-
-    
-    // Usar setTimeout para garantir que o DOM esteja pronto
-    setTimeout(() => {
-        try {
-            // Método alternativo para acessar elementos do DOM
-            const getElement = (id) => {
-                return document.querySelector(`#${id}`);
-            };
-            
-            // 1. DOCUMENTO - preencher o campo com ID "clientDocument"
-            const clientDocumentElement = getElement('clientDocument');
-            if (clientDocumentElement) {
-                clientDocumentElement.textContent = formatDocument(documentValue);
-
-            } else {
-                console.error('❌ Elemento clientDocument não encontrado');
-            }
-            
-            // 2. LIMITE - preencher o campo com ID "currentLimit"
-            const currentLimitElement = getElement('currentLimit');
-            if (currentLimitElement && data.account_limit !== undefined) {
-                currentLimitElement.textContent = formatCurrency(data.account_limit);
-
-            } else {
-                console.error('❌ Elemento currentLimit não encontrado ou account_limit ausente');
-            }
-            
-            // 3. ÚLTIMA ATUALIZAÇÃO - preencher o campo com ID "lastUpdate"
-            const lastUpdateElement = getElement('lastUpdate');
-            if (lastUpdateElement && data.updated_date) {
-                lastUpdateElement.textContent = formatDate(data.updated_date);
-
-            } else {
-                console.error('❌ Elemento lastUpdate não encontrado ou updated_date ausente');
-            }
-            
-            // 4. PREENCHER campo "newLimit" com o valor atual para facilitar edição
-            const newLimitElement = getElement('newLimit');
-            if (newLimitElement && data.account_limit !== undefined) {
-                newLimitElement.value = data.account_limit;
-
-            }
-            
-            // 5. LIMPAR campo de senha
-            const operationPasswordElement = getElement('operationPassword');
-            if (operationPasswordElement) {
-                operationPasswordElement.value = '';
-
-            }
-            
-
-            
-        } catch (error) {
-            console.error('❌ Erro ao preencher campos:', error);
-            
-            // Método de fallback - tentar preencher diretamente no HTML
-            tryDirectHTMLUpdate(documentValue, data);
-        }
-    }, 200); // Aguardar 200ms para garantir que o DOM esteja estável
-}
-
-// Função de fallback que atualiza o HTML diretamente
-function tryDirectHTMLUpdate(documentValue, data) {
-
-    
+// Display client data function
+function displayClient(documentValue, data, isNew = false) {
     try {
-        // Encontrar a seção de resultados
-        const resultSection = document.querySelector('#clientResult');
-        if (!resultSection) {
-            console.error('❌ Seção clientResult não encontrada');
-            return;
+        // Atualizar documento
+        const clientDocumentElement = document.querySelector('#clientDocument');
+        if (clientDocumentElement) {
+            clientDocumentElement.textContent = formatDocument(documentValue);
         }
         
-        // Encontrar elementos por classe ou posição
-        const infoValues = resultSection.querySelectorAll('.info-value');
-        
-        if (infoValues.length >= 3) {
-            // Primeira info-value = documento
-            infoValues[0].textContent = formatDocument(documentValue);
-            infoValues[0].id = 'clientDocument';
-
-            
-            // Segunda info-value = limite
-            infoValues[1].textContent = formatCurrency(data.account_limit);
-            infoValues[1].id = 'currentLimit';
-
-            
-            // Terceira info-value = data
-            infoValues[2].textContent = formatDate(data.updated_date);
-            infoValues[2].id = 'lastUpdate';
-
+        // Atualizar limite
+        const currentLimitElement = document.querySelector('#currentLimit');
+        if (currentLimitElement) {
+            if (isNew) {
+                currentLimitElement.textContent = 'R$ 0,00';
+            } else {
+                currentLimitElement.textContent = formatCurrency(data.account_limit);
+            }
         }
         
-        // Tentar preencher campos de input
-        const newLimitInput = resultSection.querySelector('input[type="number"]');
-        if (newLimitInput) {
-            newLimitInput.value = data.account_limit;
-            newLimitInput.id = 'newLimit';
-
+        // Atualizar última atualização
+        const lastUpdateElement = document.querySelector('#lastUpdate');
+        if (lastUpdateElement) {
+            if (isNew) {
+                lastUpdateElement.textContent = 'Cliente novo';
+            } else {
+                lastUpdateElement.textContent = formatDate(data.updated_date);
+            }
         }
         
-        const passwordInput = resultSection.querySelector('input[type="password"]');
-        if (passwordInput) {
-            passwordInput.value = '';
-            passwordInput.id = 'operationPassword';
-
+        // Preencher campo novo limite
+        const newLimitElement = document.querySelector('#newLimit');
+        if (newLimitElement) {
+            if (isNew) {
+                newLimitElement.value = '0';
+                newLimitElement.placeholder = 'Digite o limite inicial';
+            } else {
+                newLimitElement.value = data.account_limit;
+                newLimitElement.placeholder = 'Digite o novo limite';
+            }
         }
         
-
+        // Limpar senha
+        const operationPasswordElement = document.querySelector('#operationPassword');
+        if (operationPasswordElement) {
+            operationPasswordElement.value = '';
+        }
+        
+        // Atualizar botão e instruções
+        const updateBtn = document.querySelector('#updateBtn');
+        if (updateBtn) {
+            if (isNew) {
+                updateBtn.innerHTML = '➕ Criar Cliente';
+            } else {
+                updateBtn.innerHTML = '💾 Atualizar Limite';
+            }
+        }
+        
+        // Atualizar instruções
+        const instructionsElement = document.querySelector('#instructionsText');
+        if (instructionsElement) {
+            if (isNew) {
+                instructionsElement.innerHTML = `
+                    ℹ️ <strong>Novo Cliente:</strong><br>
+                    1. Digite o limite inicial de cheque especial<br>
+                    2. Digite sua senha de operação de 8 dígitos<br>
+                    3. Clique em "Criar Cliente" para confirmar
+                `;
+            } else {
+                instructionsElement.innerHTML = `
+                    ℹ️ <strong>Instruções:</strong><br>
+                    1. Digite o novo valor do limite de cheque especial<br>
+                    2. Digite sua senha de operação de 8 dígitos<br>
+                    3. Clique em "Atualizar Limite" para confirmar
+                `;
+            }
+        }
         
     } catch (error) {
-        console.error('❌ Erro no método alternativo:', error);
-        showAlert('Dados recebidos mas não foi possível exibir', 'warning');
+        console.error('❌ Erro ao preencher campos:', error);
+        showAlert('Erro ao exibir dados do cliente', 'error');
     }
 }
 
@@ -383,9 +348,6 @@ function validateDocumentInput() {
 }
 
 async function searchClient() {
-
-    
-    // Usar querySelector em vez de getElementById
     const documentInput = document.querySelector('#searchDocument');
     if (!documentInput) {
         console.error('❌ Campo searchDocument não encontrado');
@@ -410,8 +372,6 @@ async function searchClient() {
     setLoading('searchBtn', true);
     
     try {
-
-        
         // 1. Obter token da API
         const tokenResponse = await fetch(`${API_BASE_URL}/auth/token`, {
             method: 'POST',
@@ -430,7 +390,6 @@ async function searchClient() {
 
         const tokenData = await tokenResponse.json();
 
-
         if (!tokenData.access_token) {
             throw new Error('Token não recebido da API');
         }
@@ -447,42 +406,46 @@ async function searchClient() {
             })
         });
 
-
-
-        if (!clientResponse.ok) {
-            if (clientResponse.status === 404) {
-                throw new Error('Cliente não encontrado');
-            }
-            throw new Error(`Erro na consulta: ${clientResponse.status}`);
-        }
-
-        const clientData = await clientResponse.json();
-
-
-        // 3. Verificar se a consulta foi bem-sucedida
-        if (clientData.status === 'success') {
-            // Salvar documento atual para operações futuras
-            currentClientDocument = cleanDoc;
+        if (clientResponse.ok) {
+            // Cliente encontrado
+            const clientData = await clientResponse.json();
             
-            // 4. MOSTRAR a seção de resultados
+            if (clientData.status === 'success') {
+                currentClientDocument = cleanDoc;
+                isNewClient = false;
+                
+                // Mostrar seção de resultados
+                const resultSection = document.querySelector('#clientResult');
+                if (resultSection) {
+                    resultSection.style.display = 'block';
+                }
+                
+                // Exibir dados do cliente existente
+                displayClient(cleanDoc, clientData, false);
+                
+                showAlert('Cliente encontrado com sucesso!', 'success');
+            } else {
+                hideClientResultSafe();
+                currentClientDocument = null;
+                showAlert('Cliente não encontrado!', 'error');
+            }
+        } else if (clientResponse.status === 404) {
+            // Cliente não encontrado - exibir formulário para criação
+            currentClientDocument = cleanDoc;
+            isNewClient = true;
+            
+            // Mostrar seção de resultados
             const resultSection = document.querySelector('#clientResult');
             if (resultSection) {
                 resultSection.style.display = 'block';
-
-            } else {
-                console.error('❌ Seção clientResult não encontrada no HTML');
             }
             
-            // 5. PREENCHER os dados nos campos HTML
-            displayClient(cleanDoc, clientData);
+            // Exibir formulário de novo cliente
+            displayClient(cleanDoc, null, true);
             
-            showAlert('Cliente encontrado com sucesso!', 'success');
-            
+            showAlert('Cliente não encontrado. Defina um limite para criar o cliente.', 'warning');
         } else {
-
-            hideClientResultSafe();
-            currentClientDocument = null;
-            showAlert('Cliente não encontrado!', 'error');
+            throw new Error(`Erro na consulta: ${clientResponse.status}`);
         }
 
     } catch (error) {
@@ -492,7 +455,6 @@ async function searchClient() {
         currentClientDocument = null;
     } finally {
         setLoading('searchBtn', false);
-
     }
 }
 
@@ -501,15 +463,11 @@ function hideClientResultSafe() {
     const resultSection = document.querySelector('#clientResult');
     if (resultSection) {
         resultSection.style.display = 'none';
-
     }
 }
 
-// Função updateLimit simples para conectar com a API existente
+// Update or create client function
 async function updateLimit() {
-
-    
-    // Obter valores dos campos
     const newLimitElement = document.querySelector('#newLimit');
     const operationPasswordElement = document.querySelector('#operationPassword');
     
@@ -537,11 +495,89 @@ async function updateLimit() {
         return;
     }
 
-    // Mostrar loading
     setLoading('updateBtn', true);
 
     try {
-        // Fazer requisição para API
+        if (isNewClient) {
+            // Criar novo cliente
+            await createNewClient(newLimit, operationPassword);
+        } else {
+            // Atualizar cliente existente
+            await updateExistingClient(newLimit, operationPassword);
+        }
+    } finally {
+        setLoading('updateBtn', false);
+    }
+}
+
+async function createNewClient(newLimit, operationPassword) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/client/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                document: currentClientDocument,
+                name: `Cliente ${formatDocument(currentClientDocument)}`, // Nome padrão baseado no documento
+                account_limit: newLimit,
+                operation_password: operationPassword
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Sucesso - converter para modo cliente existente
+            isNewClient = false;
+            
+            // Atualizar exibição
+            const currentLimitElement = document.querySelector('#currentLimit');
+            if (currentLimitElement) {
+                currentLimitElement.textContent = formatCurrency(newLimit);
+            }
+            
+            const lastUpdateElement = document.querySelector('#lastUpdate');
+            if (lastUpdateElement) {
+                lastUpdateElement.textContent = formatDate(new Date().toISOString());
+            }
+            
+            const updateBtn = document.querySelector('#updateBtn');
+            if (updateBtn) {
+                updateBtn.innerHTML = '💾 Atualizar Limite';
+            }
+            
+            const instructionsElement = document.querySelector('#instructionsText');
+            if (instructionsElement) {
+                instructionsElement.innerHTML = `
+                    ℹ️ <strong>Instruções:</strong><br>
+                    1. Digite o novo valor do limite de cheque especial<br>
+                    2. Digite sua senha de operação de 8 dígitos<br>
+                    3. Clique em "Atualizar Limite" para confirmar
+                `;
+            }
+            
+            // Limpar senha
+            document.getElementById('operationPassword').value = '';
+            
+            showAlert('Cliente criado com sucesso!', 'success');
+            
+            // Atualizar logs
+            refreshLogs();
+            
+        } else {
+            showAlert(data.error || 'Erro ao criar cliente!', 'error');
+        }
+
+    } catch (error) {
+        console.error('Erro ao criar cliente:', error);
+        showAlert('Erro de comunicação com o servidor!', 'error');
+    }
+}
+
+async function updateExistingClient(newLimit, operationPassword) {
+    try {
         const response = await fetch(`${API_BASE_URL}/admin/client/update-limit`, {
             method: 'POST',
             headers: {
@@ -564,8 +600,14 @@ async function updateLimit() {
                 currentLimitElement.textContent = formatCurrency(newLimit);
             }
             
+            // Atualizar data
+            const lastUpdateElement = document.querySelector('#lastUpdate');
+            if (lastUpdateElement) {
+                lastUpdateElement.textContent = formatDate(new Date().toISOString());
+            }
+            
             // Limpar senha
-            operationPasswordElement.value = '';
+            document.getElementById('operationPassword').value = '';
             
             showAlert('Limite alterado com sucesso!', 'success');
             
@@ -573,25 +615,12 @@ async function updateLimit() {
             refreshLogs();
             
         } else {
-            // Erro da API
             showAlert(data.error || 'Erro ao alterar limite!', 'error');
         }
 
     } catch (error) {
-        console.error('Erro:', error);
+        console.error('Erro ao atualizar limite:', error);
         showAlert('Erro de comunicação com o servidor!', 'error');
-    } finally {
-        setLoading('updateBtn', false);
-    }
-}
-
-// Garantir que o event listener está configurado
-function ensureUpdateButtonListener() {
-    const updateBtn = document.querySelector('#updateBtn');
-    if (updateBtn && !updateBtn.hasAttribute('data-listener-added')) {
-        updateBtn.addEventListener('click', updateLimit);
-        updateBtn.setAttribute('data-listener-added', 'true');
-
     }
 }
 
@@ -624,7 +653,7 @@ function displayLogs(logs) {
     tbody.innerHTML = '';
 
     if (logs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Nenhum log encontrado</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Nenhum log encontrado</td></tr>';
         return;
     }
 
@@ -633,6 +662,7 @@ function displayLogs(logs) {
         row.innerHTML = `
             <td>${formatDate(log.change_date)}</td>
             <td>${formatDocument(log.client_document)}</td>
+            <td>${log.client_name}</td>
             <td>${formatCurrency(log.previous_limit)}</td>
             <td>${formatCurrency(log.new_limit)}</td>
             <td>${log.changed_by}</td>
@@ -716,49 +746,47 @@ function closeModal() {
     if (modal) modal.style.display = 'none';
 }
 
-// Event listeners setup - VERSÃO SEGURA
+// Event listeners setup
 function setupEventListeners() {
-
-    
     // Login form
     const loginForm = document.querySelector('#loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', login);
-
     }
     
     // Search document input validation
     const searchDocument = document.querySelector('#searchDocument');
     if (searchDocument) {
         searchDocument.addEventListener('input', validateDocumentInput);
-
     }
     
     // Search button
     const searchBtn = document.querySelector('#searchBtn');
     if (searchBtn) {
         searchBtn.addEventListener('click', searchClient);
-
+    }
+    
+    // Update/Create button
+    const updateBtn = document.querySelector('#updateBtn');
+    if (updateBtn) {
+        updateBtn.addEventListener('click', updateLimit);
     }
     
     // API test buttons
     const testApiBtn = document.querySelector('#testApiBtn');
     if (testApiBtn) {
         testApiBtn.addEventListener('click', testAPI);
-
     }
     
     const showCredentialsBtn = document.querySelector('#showCredentialsBtn');
     if (showCredentialsBtn) {
         showCredentialsBtn.addEventListener('click', showApiCredentials);
-
     }
     
     // Refresh logs button
     const refreshLogsBtn = document.querySelector('#refreshLogsBtn');
     if (refreshLogsBtn) {
         refreshLogsBtn.addEventListener('click', refreshLogs);
-
     }
     
     // Modal close buttons
@@ -779,18 +807,6 @@ function setupEventListeners() {
             closeModal();
         }
     });
-    
-    // Update button (adicionar após um delay para garantir que existe)
-    setTimeout(() => {
-        const updateBtn = document.querySelector('#updateBtn');
-        if (updateBtn && !updateBtn.hasAttribute('data-listener-added')) {
-            updateBtn.addEventListener('click', updateLimit);
-            updateBtn.setAttribute('data-listener-added', 'true');
-
-        }
-    }, 1000);
-    
-
 }
 
 // Initialize when DOM is ready
@@ -800,58 +816,11 @@ function initializeApp() {
         return;
     }
     
-
     setupEventListeners();
 }
 
-// Função de teste para verificar exibição
-function testDisplaySafe() {
-
-    
-    const testData = {
-        account_limit: 1000,
-        updated_date: "2025-06-18T16:11:32.517Z",
-        status: "success"
-    };
-    
-    const testDocument = "02496347243";
-    
-    // Mostrar seção
-    const resultSection = document.querySelector('#clientResult');
-    if (resultSection) {
-        resultSection.style.display = 'block';
-
-    }
-    
-    // Testar preenchimento
-    displayClient(testDocument, testData);
-}
-
-// Função para verificar elementos HTML
-function checkHtmlElements() {
-
-    
-    const requiredElements = [
-        'clientResult',     // Seção principal
-        'clientDocument',   // Campo documento
-        'currentLimit',     // Campo limite
-        'lastUpdate',       // Campo última atualização
-        'newLimit',         // Campo novo limite
-        'operationPassword' // Campo senha
-    ];
-    
-    requiredElements.forEach(id => {
-        const element = document.querySelector(`#${id}`);
-
-    });
-    
-    return requiredElements.every(id => document.querySelector(`#${id}`) !== null);
-}
-
-// Global functions
+// Global functions for HTML onclick events
 window.logout = logout;
-window.testDisplaySafe = testDisplaySafe;
-window.checkElements = checkHtmlElements;
 
 // Initialize app
 initializeApp();
