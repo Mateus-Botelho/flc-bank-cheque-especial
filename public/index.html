@@ -44,7 +44,7 @@
                 </div>
                 <div class="user-info">
                     <span>Usuário: <strong id="currentUser">Administrador</strong></span>
-                    <button class="btn btn-secondary" id="logoutBtn">🚪 Sair</button>
+                    <button class="btn btn-secondary" onclick="logout()">🚪 Sair</button>
                 </div>
             </div>
 
@@ -53,7 +53,7 @@
                 <div class="card">
                     <h3>
                         <div class="card-icon">👤</div>
-                        Buscar Cliente
+                        Consultar Limite
                     </h3>
                     
                     <div class="form-group">
@@ -63,13 +63,13 @@
                     </div>
                     
                     <button class="btn btn-primary" id="searchBtn">
-                        🔍 Buscar Cliente
+                        🔍 Consultar Limite
                     </button>
 
-                    <!-- Client Result -->
+                    <!-- Client Result - SEÇÃO CORRIGIDA -->
                     <div id="clientResult" style="display: none;">
                         <div class="search-result">
-                            <h4 style="color: #2c3e50; margin-bottom: 15px;">📋 Dados do Cliente</h4>
+                            <h4 style="color: #2c3e50; margin-bottom: 15px;">📋 Dados da Conta</h4>
                             
                             <div class="client-info">
                                 <div class="info-item">
@@ -77,7 +77,7 @@
                                     <span class="info-value" id="clientDocument">-</span>
                                 </div>
                                 <div class="info-item">
-                                    <span class="info-label">Limite Atual</span>
+                                    <span class="info-label">Limite de Cheque Especial</span>
                                     <span class="info-value limit-value" id="currentLimit">R$ 0,00</span>
                                 </div>
                                 <div class="info-item" style="grid-column: 1 / -1;">
@@ -105,7 +105,7 @@
                                 
                                 <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 14px; color: #666;">
                                     ℹ️ <strong>Instruções:</strong><br>
-                                    1. Digite o novo valor do limite<br>
+                                    1. Digite o novo valor do limite de cheque especial<br>
                                     2. Digite sua senha de operação de 8 dígitos<br>
                                     3. Clique em "Alterar Limite" para confirmar
                                 </div>
@@ -147,7 +147,6 @@ Authorization: Bearer {TOKEN}<br><br>
                                 <tr>
                                     <th>Data/Hora</th>
                                     <th>Documento</th>
-                                    <th>Cliente</th>
                                     <th>Limite Anterior</th>
                                     <th>Novo Limite</th>
                                     <th>Usuário</th>
@@ -156,7 +155,7 @@ Authorization: Bearer {TOKEN}<br><br>
                             </thead>
                             <tbody id="logTableBody">
                                 <tr>
-                                    <td colspan="7" style="text-align: center; color: #999;">Carregando logs...</td>
+                                    <td colspan="6" style="text-align: center; color: #999;">Carregando logs...</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -460,3 +460,155 @@ body {
         flex-direction: column;
     }
 }
+
+/* Container dos alertas flutuantes */
+.floating-alerts {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    pointer-events: none;
+    max-width: 400px;
+}
+
+/* Alert flutuante individual */
+.floating-alert {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border-left: 4px solid #3498db;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    pointer-events: auto;
+    transform: translateX(420px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Animação de entrada */
+.floating-alert.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Tipos de alert */
+.floating-alert.success {
+    border-left-color: #27ae60;
+    background: linear-gradient(135deg, #f0fff4 0%, #e8f5e8 100%);
+}
+
+.floating-alert.error {
+    border-left-color: #e74c3c;
+    background: linear-gradient(135deg, #fff5f5 0%, #fee8e8 100%);
+}
+
+.floating-alert.warning {
+    border-left-color: #f39c12;
+    background: linear-gradient(135deg, #fffbf0 0%, #fef3cd 100%);
+}
+
+.floating-alert.info {
+    border-left-color: #3498db;
+    background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%);
+}
+
+/* Ícone do alert */
+.floating-alert-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    width: 24px;
+    text-align: center;
+}
+
+/* Conteúdo do alert */
+.floating-alert-content {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #2c3e50;
+    line-height: 1.4;
+}
+
+/* Botão de fechar */
+.floating-alert-close {
+    background: none;
+    border: none;
+    color: #95a5a6;
+    cursor: pointer;
+    font-size: 18px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.floating-alert-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #2c3e50;
+}
+
+/* Barra de progresso */
+.floating-alert-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 12px 12px;
+    transform-origin: left;
+    animation: progress 5s linear forwards;
+}
+
+.floating-alert.success .floating-alert-progress {
+    background: #27ae60;
+}
+
+.floating-alert.error .floating-alert-progress {
+    background: #e74c3c;
+}
+
+.floating-alert.warning .floating-alert-progress {
+    background: #f39c12;
+}
+
+.floating-alert.info .floating-alert-progress {
+    background: #3498db;
+}
+
+@keyframes progress {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0);
+    }
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .floating-alerts {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .floating-alert {
+        min-width: auto;
+        transform: translateY(-100px);
+    }
+    
+    .floating-alert.show {
+        transform: translateY(0);
+    }
+}
