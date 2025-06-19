@@ -14,8 +14,8 @@ const PORT = process.env.PORT || 3000;
 
 // Configuração de rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutos
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // máximo 100 requests por IP
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
   message: {
     error: 'Muitas requisições. Tente novamente em alguns minutos.',
     status: 'error'
@@ -36,12 +36,25 @@ app.use(helmet({
   },
 }));
 
-// CORS
+// CORS CORRIGIDO PARA PRODUÇÃO
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['http://localhost:3000', 'https://yourdomain.com'] 
-    : true,
-  credentials: true
+  origin: function (origin, callback) {
+    const allowedOrigins = process.env.NODE_ENV === 'production' 
+      ? [
+          'https://api.aitonomy.ai',
+          'http://localhost:3000'
+        ]
+      : true;
+
+    if (process.env.NODE_ENV !== 'production' || !origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Não permitido pelo CORS'));
+    }
+  },
+  credentials: true, // CRÍTICO: Permitir cookies/sessões
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Rate limiting
@@ -56,16 +69,20 @@ if (process.env.NODE_ENV !== 'test') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Configuração de sessão
+// CONFIGURAÇÃO DE SESSÃO CORRIGIDA
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-session-secret-change-in-production',
   resave: false,
   saveUninitialized: false,
+  name: 'admin.session',
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // HTTPS em produção
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 horas
-  }
+    maxAge: 24 * 60 * 60 * 1000, // 24 horas
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' para cross-origin em prod
+    domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Deixar undefined para funcionar
+  },
+  proxy: process.env.NODE_ENV === 'production' // Para HTTPS atrás de proxy
 }));
 
 // Servir arquivos estáticos
@@ -119,10 +136,8 @@ app.use((error, req, res, next) => {
 // Função para iniciar o servidor
 const startServer = async () => {
   try {
-    // Testar conexão com o banco
     await testConnection();
     
-    // Iniciar servidor
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
       console.log(`📱 Frontend: http://localhost:${PORT}`);
@@ -137,10 +152,8 @@ const startServer = async () => {
   }
 };
 
-// Iniciar servidor se este arquivo for executado diretamente
 if (require.main === module) {
   startServer();
 }
 
 module.exports = app;
-
