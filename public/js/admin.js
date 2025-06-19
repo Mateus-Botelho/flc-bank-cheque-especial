@@ -156,9 +156,9 @@ function setLoading(buttonId, loading) {
 
 // Display client data function - VERSÃO SEGURA
 function displayClient(documentValue, data) {
-    console.log('📝 Preenchendo dados nos campos HTML...');
-    console.log('📄 Documento:', documentValue);
-    console.log('📊 Dados da API:', data);
+
+
+
     
     // Usar setTimeout para garantir que o DOM esteja pronto
     setTimeout(() => {
@@ -172,7 +172,7 @@ function displayClient(documentValue, data) {
             const clientDocumentElement = getElement('clientDocument');
             if (clientDocumentElement) {
                 clientDocumentElement.textContent = formatDocument(documentValue);
-                console.log('✅ Campo clientDocument preenchido:', formatDocument(documentValue));
+
             } else {
                 console.error('❌ Elemento clientDocument não encontrado');
             }
@@ -181,7 +181,7 @@ function displayClient(documentValue, data) {
             const currentLimitElement = getElement('currentLimit');
             if (currentLimitElement && data.account_limit !== undefined) {
                 currentLimitElement.textContent = formatCurrency(data.account_limit);
-                console.log('✅ Campo currentLimit preenchido:', formatCurrency(data.account_limit));
+
             } else {
                 console.error('❌ Elemento currentLimit não encontrado ou account_limit ausente');
             }
@@ -190,7 +190,7 @@ function displayClient(documentValue, data) {
             const lastUpdateElement = getElement('lastUpdate');
             if (lastUpdateElement && data.updated_date) {
                 lastUpdateElement.textContent = formatDate(data.updated_date);
-                console.log('✅ Campo lastUpdate preenchido:', formatDate(data.updated_date));
+
             } else {
                 console.error('❌ Elemento lastUpdate não encontrado ou updated_date ausente');
             }
@@ -199,17 +199,17 @@ function displayClient(documentValue, data) {
             const newLimitElement = getElement('newLimit');
             if (newLimitElement && data.account_limit !== undefined) {
                 newLimitElement.value = data.account_limit;
-                console.log('✅ Campo newLimit preenchido com valor atual:', data.account_limit);
+
             }
             
             // 5. LIMPAR campo de senha
             const operationPasswordElement = getElement('operationPassword');
             if (operationPasswordElement) {
                 operationPasswordElement.value = '';
-                console.log('✅ Campo operationPassword limpo');
+
             }
             
-            console.log('🎉 Todos os campos preenchidos com sucesso!');
+
             
         } catch (error) {
             console.error('❌ Erro ao preencher campos:', error);
@@ -222,7 +222,7 @@ function displayClient(documentValue, data) {
 
 // Função de fallback que atualiza o HTML diretamente
 function tryDirectHTMLUpdate(documentValue, data) {
-    console.log('🔧 Tentando método alternativo de preenchimento...');
+
     
     try {
         // Encontrar a seção de resultados
@@ -239,17 +239,17 @@ function tryDirectHTMLUpdate(documentValue, data) {
             // Primeira info-value = documento
             infoValues[0].textContent = formatDocument(documentValue);
             infoValues[0].id = 'clientDocument';
-            console.log('✅ Documento preenchido por seletor:', formatDocument(documentValue));
+
             
             // Segunda info-value = limite
             infoValues[1].textContent = formatCurrency(data.account_limit);
             infoValues[1].id = 'currentLimit';
-            console.log('✅ Limite preenchido por seletor:', formatCurrency(data.account_limit));
+
             
             // Terceira info-value = data
             infoValues[2].textContent = formatDate(data.updated_date);
             infoValues[2].id = 'lastUpdate';
-            console.log('✅ Data preenchida por seletor:', formatDate(data.updated_date));
+
         }
         
         // Tentar preencher campos de input
@@ -257,17 +257,17 @@ function tryDirectHTMLUpdate(documentValue, data) {
         if (newLimitInput) {
             newLimitInput.value = data.account_limit;
             newLimitInput.id = 'newLimit';
-            console.log('✅ Campo newLimit preenchido por seletor');
+
         }
         
         const passwordInput = resultSection.querySelector('input[type="password"]');
         if (passwordInput) {
             passwordInput.value = '';
             passwordInput.id = 'operationPassword';
-            console.log('✅ Campo senha limpo por seletor');
+
         }
         
-        console.log('🎉 Preenchimento alternativo concluído!');
+
         
     } catch (error) {
         console.error('❌ Erro no método alternativo:', error);
@@ -383,7 +383,7 @@ function validateDocumentInput() {
 }
 
 async function searchClient() {
-    console.log('🔍 Iniciando busca de cliente...');
+
     
     // Usar querySelector em vez de getElementById
     const documentInput = document.querySelector('#searchDocument');
@@ -410,7 +410,7 @@ async function searchClient() {
     setLoading('searchBtn', true);
     
     try {
-        console.log('🔍 Buscando documento:', cleanDoc);
+
         
         // 1. Obter token da API
         const tokenResponse = await fetch(`${API_BASE_URL}/auth/token`, {
@@ -429,7 +429,7 @@ async function searchClient() {
         }
 
         const tokenData = await tokenResponse.json();
-        console.log('🔑 Token obtido com sucesso');
+
 
         if (!tokenData.access_token) {
             throw new Error('Token não recebido da API');
@@ -447,7 +447,7 @@ async function searchClient() {
             })
         });
 
-        console.log('📡 Status da consulta:', clientResponse.status);
+
 
         if (!clientResponse.ok) {
             if (clientResponse.status === 404) {
@@ -457,7 +457,7 @@ async function searchClient() {
         }
 
         const clientData = await clientResponse.json();
-        console.log('📦 Resposta da API:', clientData);
+
 
         // 3. Verificar se a consulta foi bem-sucedida
         if (clientData.status === 'success') {
@@ -468,7 +468,7 @@ async function searchClient() {
             const resultSection = document.querySelector('#clientResult');
             if (resultSection) {
                 resultSection.style.display = 'block';
-                console.log('✅ Seção de resultados exibida');
+
             } else {
                 console.error('❌ Seção clientResult não encontrada no HTML');
             }
@@ -479,7 +479,7 @@ async function searchClient() {
             showAlert('Cliente encontrado com sucesso!', 'success');
             
         } else {
-            console.log('❌ API retornou status:', clientData.status);
+
             hideClientResultSafe();
             currentClientDocument = null;
             showAlert('Cliente não encontrado!', 'error');
@@ -492,7 +492,7 @@ async function searchClient() {
         currentClientDocument = null;
     } finally {
         setLoading('searchBtn', false);
-        console.log('🔄 Busca finalizada');
+
     }
 }
 
@@ -501,13 +501,13 @@ function hideClientResultSafe() {
     const resultSection = document.querySelector('#clientResult');
     if (resultSection) {
         resultSection.style.display = 'none';
-        console.log('🙈 Seção de resultados ocultada');
+
     }
 }
 
 // Função updateLimit simples para conectar com a API existente
 async function updateLimit() {
-    console.log('💾 Alterando limite...');
+
     
     // Obter valores dos campos
     const newLimitElement = document.querySelector('#newLimit');
@@ -591,7 +591,7 @@ function ensureUpdateButtonListener() {
     if (updateBtn && !updateBtn.hasAttribute('data-listener-added')) {
         updateBtn.addEventListener('click', updateLimit);
         updateBtn.setAttribute('data-listener-added', 'true');
-        console.log('✅ Event listener do botão Alterar Limite adicionado');
+
     }
 }
 
@@ -718,47 +718,47 @@ function closeModal() {
 
 // Event listeners setup - VERSÃO SEGURA
 function setupEventListeners() {
-    console.log('🚀 Configurando event listeners seguros...');
+
     
     // Login form
     const loginForm = document.querySelector('#loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', login);
-        console.log('✅ Event listener do login adicionado');
+
     }
     
     // Search document input validation
     const searchDocument = document.querySelector('#searchDocument');
     if (searchDocument) {
         searchDocument.addEventListener('input', validateDocumentInput);
-        console.log('✅ Event listener de validação adicionado');
+
     }
     
     // Search button
     const searchBtn = document.querySelector('#searchBtn');
     if (searchBtn) {
         searchBtn.addEventListener('click', searchClient);
-        console.log('✅ Event listener do search adicionado');
+
     }
     
     // API test buttons
     const testApiBtn = document.querySelector('#testApiBtn');
     if (testApiBtn) {
         testApiBtn.addEventListener('click', testAPI);
-        console.log('✅ Event listener do testAPI adicionado');
+
     }
     
     const showCredentialsBtn = document.querySelector('#showCredentialsBtn');
     if (showCredentialsBtn) {
         showCredentialsBtn.addEventListener('click', showApiCredentials);
-        console.log('✅ Event listener do showCredentials adicionado');
+
     }
     
     // Refresh logs button
     const refreshLogsBtn = document.querySelector('#refreshLogsBtn');
     if (refreshLogsBtn) {
         refreshLogsBtn.addEventListener('click', refreshLogs);
-        console.log('✅ Event listener do refreshLogs adicionado');
+
     }
     
     // Modal close buttons
@@ -786,11 +786,11 @@ function setupEventListeners() {
         if (updateBtn && !updateBtn.hasAttribute('data-listener-added')) {
             updateBtn.addEventListener('click', updateLimit);
             updateBtn.setAttribute('data-listener-added', 'true');
-            console.log('✅ Event listener do update adicionado');
+
         }
     }, 1000);
     
-    console.log('✅ Event listeners configurados');
+
 }
 
 // Initialize when DOM is ready
@@ -800,13 +800,13 @@ function initializeApp() {
         return;
     }
     
-    console.log('🚀 DOM carregado, inicializando aplicação...');
+
     setupEventListeners();
 }
 
 // Função de teste para verificar exibição
 function testDisplaySafe() {
-    console.log('🧪 Testando exibição segura...');
+
     
     const testData = {
         account_limit: 1000,
@@ -820,7 +820,7 @@ function testDisplaySafe() {
     const resultSection = document.querySelector('#clientResult');
     if (resultSection) {
         resultSection.style.display = 'block';
-        console.log('✅ Seção exibida para teste');
+
     }
     
     // Testar preenchimento
@@ -829,7 +829,7 @@ function testDisplaySafe() {
 
 // Função para verificar elementos HTML
 function checkHtmlElements() {
-    console.log('🔍 Verificando elementos HTML necessários:');
+
     
     const requiredElements = [
         'clientResult',     // Seção principal
@@ -842,7 +842,7 @@ function checkHtmlElements() {
     
     requiredElements.forEach(id => {
         const element = document.querySelector(`#${id}`);
-        console.log(`- ${id}: ${element ? '✅ EXISTE' : '❌ NÃO ENCONTRADO'}`);
+
     });
     
     return requiredElements.every(id => document.querySelector(`#${id}`) !== null);
